@@ -4,7 +4,7 @@
 > placing its tabs inside a native **tab group** with the container's name and
 > color.
 
-[![CI](https://github.com/CHANGE_ME/container-tab-groups/actions/workflows/ci.yml/badge.svg)](https://github.com/CHANGE_ME/container-tab-groups/actions/workflows/ci.yml)
+[![CI](https://github.com/hummusim/container-tab-groups/actions/workflows/ci.yml/badge.svg)](https://github.com/hummusim/container-tab-groups/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Firefox 140+](https://img.shields.io/badge/Firefox-140%2B-orange.svg)](https://www.mozilla.org/firefox/)
 
