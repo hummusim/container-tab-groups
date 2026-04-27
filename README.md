@@ -26,8 +26,8 @@
 - Firefox **139+** (when the WebExtensions `tabGroups` and `tabs.group()` APIs
   shipped). Native tab-groups UI shipped earlier (137), but the API this
   extension relies on is 139+.
-- Multi-Account Containers feature enabled. Mozilla's *Firefox Multi-Account
-  Containers* extension makes managing containers easier, but isn't strictly
+- Multi-Account Containers feature enabled. Mozilla's _Firefox Multi-Account
+  Containers_ extension makes managing containers easier, but isn't strictly
   required - any `contextualIdentities` entry works.
 
 ## Install (temporary, for development)

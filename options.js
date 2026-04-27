@@ -55,11 +55,7 @@ autoCollapseEl.addEventListener("change", async () => {
     const settings = await loadSettings();
     settings.autoCollapseInactiveGroups = autoCollapseEl.checked;
     await saveSettings(settings);
-    flash(
-      autoCollapseEl.checked
-        ? "Auto-collapse enabled."
-        : "Auto-collapse disabled."
-    );
+    flash(autoCollapseEl.checked ? "Auto-collapse enabled." : "Auto-collapse disabled.");
   } catch (e) {
     flash("Failed: " + e.message, true);
   }

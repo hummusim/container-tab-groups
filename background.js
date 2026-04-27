@@ -311,9 +311,7 @@ async function handleTabActivatedImpl(tabId, windowId) {
   if (!tab) return;
 
   const activeGroupId =
-    typeof tab.groupId === "number" && tab.groupId !== TAB_GROUP_ID_NONE
-      ? tab.groupId
-      : null;
+    typeof tab.groupId === "number" && tab.groupId !== TAB_GROUP_ID_NONE ? tab.groupId : null;
 
   await collapseInactiveGroupsImpl(windowId, activeGroupId);
 }
@@ -330,9 +328,7 @@ function scheduleTabHandling(tabId) {
   }
   const timer = setTimeout(() => {
     pendingTabs.delete(tabId);
-    handleSingleTab(tabId).catch((e) =>
-      log.warn("handleSingleTab failed:", e)
-    );
+    handleSingleTab(tabId).catch((e) => log.warn("handleSingleTab failed:", e));
   }, NEW_TAB_DEBOUNCE_MS);
   pendingTabs.set(tabId, timer);
 }
@@ -342,21 +338,15 @@ function scheduleTabHandling(tabId) {
 // ---------------------------------------------------------------------------
 
 browser.runtime.onInstalled.addListener(() => {
-  regroupAllWindows().catch((e) =>
-    log.error("onInstalled regroup failed:", e)
-  );
+  regroupAllWindows().catch((e) => log.error("onInstalled regroup failed:", e));
 });
 
 browser.runtime.onStartup.addListener(() => {
-  regroupAllWindows().catch((e) =>
-    log.error("onStartup regroup failed:", e)
-  );
+  regroupAllWindows().catch((e) => log.error("onStartup regroup failed:", e));
 });
 
 browser.action.onClicked.addListener(() => {
-  regroupAllWindows().catch((e) =>
-    log.error("action regroup failed:", e)
-  );
+  regroupAllWindows().catch((e) => log.error("action regroup failed:", e));
 });
 
 browser.runtime.onMessage.addListener((message) => {
