@@ -1,14 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Container Tab Groups",
+  "name": "Containers as Tab Groups",
   "version": "1.0.0",
   "description": "Group your tabs automatically by their Multi-Account Container, treating each container like a profile.",
-  "homepage_url": "https://github.com/CHANGE_ME/container-tab-groups",
+  "homepage_url": "https://github.com/hummusim/container-tab-groups",
   "permissions": ["tabs", "tabGroups", "contextualIdentities", "storage"],
   "browser_specific_settings": {
     "gecko": {
-      "id": "container-tab-groups@local",
-      "strict_min_version": "139.0"
+      "id": "containers-as-tab-groups@hummusim",
+      "strict_min_version": "139.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "background": {
