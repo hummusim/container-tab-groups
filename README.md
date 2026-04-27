@@ -62,7 +62,7 @@ CI runs `format:check`, `lint`, and `build` on every push and pull request.
 ├── options.html         # Options panel markup.
 ├── options.js           # Options panel logic + settings persistence.
 ├── icons/               # Toolbar / extension SVG icons.
-├── web-ext-config.cjs   # web-ext build/run config.
+├── web-ext-config.mjs   # web-ext build/run config.
 ├── eslint.config.js     # ESLint v9 flat config (browser + webextensions).
 └── .github/workflows/   # CI pipeline.
 ```

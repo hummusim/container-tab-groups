@@ -4,7 +4,19 @@ import globals from "globals";
 export default [
   js.configs.recommended,
   {
-    files: ["**/*.js"],
+    // ESM config files in this repo (eslint.config.js, web-ext-config.mjs).
+    files: ["eslint.config.js", "*.mjs"],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
+    // Extension code: classic background script + options page script.
+    files: ["background.js", "options.js"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "script",

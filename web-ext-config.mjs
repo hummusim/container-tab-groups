@@ -2,12 +2,12 @@
  * web-ext configuration.
  * https://extensionworkshop.com/documentation/develop/web-ext-command-reference/
  */
-module.exports = {
+export default {
   // Files NOT shipped inside the .zip artifact.
   ignoreFiles: [
     "package.json",
     "package-lock.json",
-    "web-ext-config.cjs",
+    "web-ext-config.mjs",
     "eslint.config.js",
     ".prettierrc",
     ".prettierignore",
