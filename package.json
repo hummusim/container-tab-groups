@@ -1,0 +1,34 @@
+{
+  "name": "container-tab-groups",
+  "version": "1.0.0",
+  "description": "Group tabs by Multi-Account Container, treating each container like a profile.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "hummusim",
+  "homepage": "https://github.com/CHANGE_ME/container-tab-groups",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CHANGE_ME/container-tab-groups.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CHANGE_ME/container-tab-groups/issues"
+  },
+  "scripts": {
+    "lint": "npm run lint:ext && npm run lint:js",
+    "lint:ext": "web-ext lint",
+    "lint:js": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "web-ext build --overwrite-dest",
+    "start": "web-ext run",
+    "verify": "npm run format:check && npm run lint"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "eslint": "^9.13.0",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3",
+    "web-ext": "^8.3.0"
+  }
+}
