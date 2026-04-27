@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/CHANGE_ME/container-tab-groups/actions/workflows/ci.yml/badge.svg)](https://github.com/CHANGE_ME/container-tab-groups/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Firefox 139+](https://img.shields.io/badge/Firefox-139%2B-orange.svg)](https://www.mozilla.org/firefox/)
+[![Firefox 140+](https://img.shields.io/badge/Firefox-140%2B-orange.svg)](https://www.mozilla.org/firefox/)
 
 ## Features
 
@@ -23,9 +23,10 @@
 
 ## Requirements
 
-- Firefox **139+** (when the WebExtensions `tabGroups` and `tabs.group()` APIs
-  shipped). Native tab-groups UI shipped earlier (137), but the API this
-  extension relies on is 139+.
+- Firefox **140+**. The WebExtensions `tabGroups` and `tabs.group()` APIs
+  shipped in 139, but Firefox 140 introduced
+  `browser_specific_settings.gecko.data_collection_permissions`, which AMO
+  now requires for new submissions.
 - Multi-Account Containers feature enabled. Mozilla's _Firefox Multi-Account
   Containers_ extension makes managing containers easier, but isn't strictly
   required - any `contextualIdentities` entry works.

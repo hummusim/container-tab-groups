@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-04-27
+
+### Changed
+
+- Bump `strict_min_version` to 140 so the `data_collection_permissions`
+  manifest key validates cleanly on AMO.
+- Switch icons from SVG to PNG (48 and 128) for AMO compatibility.
+
+### Fixed
+
+- Exclude `.env` and related dotfiles from the packaged artifact so
+  signing credentials never end up inside the .zip.
+
 ## [1.0.0] - 2026-04-27
 
 ### Added

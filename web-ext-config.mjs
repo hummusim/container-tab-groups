@@ -17,6 +17,10 @@ export default {
     "node_modules",
     "web-ext-artifacts",
     "CHANGELOG.md",
+    // Local secrets - MUST never end up in the signed package.
+    ".env",
+    ".env.*",
+    ".env.example",
   ],
   build: {
     overwriteDest: true,

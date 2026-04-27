@@ -1,6 +1,6 @@
 {
   "name": "container-tab-groups",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Group tabs by Multi-Account Container, treating each container like a profile.",
   "private": true,
   "type": "module",
@@ -22,10 +22,13 @@
     "format:check": "prettier --check .",
     "build": "web-ext build --overwrite-dest",
     "start": "web-ext run",
+    "sign": "dotenv -- web-ext sign --channel=unlisted",
+    "sign:listed": "dotenv -- web-ext sign --channel=listed",
     "verify": "npm run format:check && npm run lint"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "dotenv-cli": "^7.4.2",
     "eslint": "^9.13.0",
     "globals": "^15.11.0",
     "prettier": "^3.3.3",
