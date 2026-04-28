@@ -1,10 +1,12 @@
 const SETTINGS_KEY = "settings";
 const DEFAULT_SETTINGS = {
   autoCollapseInactiveGroups: true,
+  audibleIndicator: true,
 };
 
 const statusEl = document.getElementById("status");
 const autoCollapseEl = document.getElementById("autoCollapse");
+const audibleIndicatorEl = document.getElementById("audibleIndicator");
 
 function flash(msg, isError) {
   statusEl.style.color = isError ? "#a4262c" : "#126312";
@@ -28,6 +30,7 @@ async function saveSettings(settings) {
 (async () => {
   const settings = await loadSettings();
   autoCollapseEl.checked = !!settings.autoCollapseInactiveGroups;
+  audibleIndicatorEl.checked = !!settings.audibleIndicator;
 })();
 
 // Event wiring --------------------------------------------------------------
@@ -56,6 +59,22 @@ autoCollapseEl.addEventListener("change", async () => {
     settings.autoCollapseInactiveGroups = autoCollapseEl.checked;
     await saveSettings(settings);
     flash(autoCollapseEl.checked ? "Auto-collapse enabled." : "Auto-collapse disabled.");
+  } catch (e) {
+    flash("Failed: " + e.message, true);
+  }
+});
+
+audibleIndicatorEl.addEventListener("change", async () => {
+  try {
+    const settings = await loadSettings();
+    settings.audibleIndicator = audibleIndicatorEl.checked;
+    await saveSettings(settings);
+    // Trigger a regroup so titles refresh immediately to reflect the new
+    // setting (suffix appears or disappears).
+    await browser.runtime.sendMessage({ type: "regroup-all" }).catch(() => {});
+    flash(
+      audibleIndicatorEl.checked ? "Audible indicator enabled." : "Audible indicator disabled."
+    );
   } catch (e) {
     flash("Failed: " + e.message, true);
   }

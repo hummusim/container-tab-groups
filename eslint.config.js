@@ -15,8 +15,8 @@ export default [
     },
   },
   {
-    // Extension code: classic background script + options page script.
-    files: ["background.js", "options.js"],
+    // Extension code: classic background script + options page script + popup.
+    files: ["background.js", "options.js", "popup.js"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "script",

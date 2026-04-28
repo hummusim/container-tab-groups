@@ -14,12 +14,41 @@
 - Reuses the container's color (mapped to the closest `tabGroups` palette color).
 - Auto-collapses inactive container groups when you switch tabs, so only the
   "profile" you're using stays expanded. Toggle in the options page.
+- Audible indicator: appends a " ♪" to the title of any group whose tabs are
+  currently playing sound, so you can see at a glance which "profile" is
+  making noise. Toggle in the options page.
+- Keyboard shortcut to toggle play/pause on the audible tab
+  (`Ctrl+Shift+.` on Linux/Windows, `Cmd+Shift+.` on macOS). Reassign at
+  `about:addons` -> gear -> Manage Extension Shortcuts.
 - Reacts to live changes: tabs created, attached to another window, or moved
   to a different container; containers renamed, recolored, or deleted; tab
   groups deleted manually.
 - Persistent container -> group mapping in `storage.local`, so a background
   script restart doesn't fragment groups.
 - Single mutex serializes all mutating operations to avoid races.
+
+## Permissions
+
+This extension declares the smallest set of permissions it needs and
+requests **no host access** to any website. There is no `<all_urls>`
+prompt, no content-script injection, and no network activity.
+
+| Permission             | Why it's needed                                                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tabs`                 | Read tab metadata (URL, container, audible state) and update simple properties (muted state). Never reads page contents.                            |
+| `tabGroups`            | Create, rename, recolor, and collapse the native Firefox tab groups that mirror your containers.                                                    |
+| `contextualIdentities` | Read the name and color of each Multi-Account Container so the matching tab group can use them.                                                     |
+| `storage`              | Persist the container -> group mapping and your settings (auto-collapse toggle, audible indicator toggle) in `storage.local`, on your machine only. |
+
+What the extension does **not** do:
+
+- Send any data anywhere. There is no telemetry and no remote endpoint.
+- Read, modify, or inject scripts into any web page.
+- Touch your bookmarks, history, downloads, cookies, or saved passwords.
+- Persist anything outside `storage.local` of this extension.
+
+Mute/unmute (in the toolbar popup and via the keyboard shortcut) uses
+only the `tabs` API - no host permissions are involved.
 
 ## Requirements
 
