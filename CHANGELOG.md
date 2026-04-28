@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-04-27
+
+### Added
+
+- Toolbar **player popup**: clicking the extension icon opens a panel
+  listing the tabs currently producing audio, with per-row mute/unmute
+  toggle (rendered as ⏸/▶) and "switch to tab" control. Container badges
+  match the Multi-Account Containers color of each row. Includes the
+  existing "Re-group all tabs" action.
+  - Mute/unmute is used instead of true `pause()`/`play()` because
+    Firefox's autoplay policy rejects programmatic `play()` calls
+    originating in extension popups (the user-gesture chain is not
+    transferred to the target tab). For a true video pause, switch to
+    the tab and press space.
+- Audible indicator: appends a " ♪" suffix to the title of any tab group
+  that contains a tab currently playing audio. Toggle in the options page.
+- Keyboard shortcut `Ctrl+Shift+.` (`Cmd+Shift+.` on macOS) that toggles
+  mute on the audible tab. Falls back to the active tab when nothing is
+  currently producing sound. Reassign at `about:addons` -> gear ->
+  Manage Extension Shortcuts.
+
+### Notes on permissions
+
+- The toolbar player and keyboard shortcut are intentionally implemented
+  via mute/unmute (the `tabs` API) instead of `HTMLMediaElement.play()` /
+  `pause()`. That keeps the permission surface minimal: no `scripting`
+  permission, no host access of any kind. The trade-off is that "pausing"
+  via the popup actually mutes the tab; the underlying media keeps
+  decoding silently. To truly pause the video, switch to the tab and
+  press space.
+
+### Changed
+
+- Toolbar icon click no longer immediately re-groups; it opens the popup.
+  The same action is available as a button at the bottom of the popup.
+
 ## [1.0.1] - 2026-04-27
 
 ### Changed

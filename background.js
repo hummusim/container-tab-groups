@@ -30,10 +30,13 @@ const DEFAULT_COOKIE_STORE_ID = "firefox-default";
 const STORAGE_KEY = "containerGroupMap"; // { [windowId::cookieStoreId]: groupId }
 const SETTINGS_KEY = "settings";
 const NEW_TAB_DEBOUNCE_MS = 250;
+const AUDIBLE_REFRESH_DEBOUNCE_MS = 200;
 const TAB_GROUP_ID_NONE = -1;
+const AUDIBLE_INDICATOR = " ♪"; // " ♪"
 
 const DEFAULT_SETTINGS = {
   autoCollapseInactiveGroups: true,
+  audibleIndicator: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -146,10 +149,12 @@ async function resolveGroupId(windowId, identity, persistedMap) {
 
   // 2. By matching title in the same window. We query without a title filter
   //    and match in JS, since the `title` query parameter isn't honored
-  //    consistently across Firefox versions.
+  //    consistently across Firefox versions. Strip the audible indicator
+  //    suffix before comparing so we still recognize a group that's currently
+  //    showing "Personal ♪".
   try {
     const groups = await browser.tabGroups.query({ windowId });
-    const match = groups.find((g) => g.title === identity.name);
+    const match = groups.find((g) => stripAudibleIndicator(g.title) === identity.name);
     if (match) {
       persistedMap[key] = match.id;
       return match.id;
@@ -161,10 +166,37 @@ async function resolveGroupId(windowId, identity, persistedMap) {
   return null;
 }
 
+function stripAudibleIndicator(title) {
+  if (!title) return title;
+  return title.endsWith(AUDIBLE_INDICATOR)
+    ? title.slice(0, -AUDIBLE_INDICATOR.length)
+    : title;
+}
+
+async function isGroupAudible(groupId) {
+  try {
+    const tabs = await browser.tabs.query({ groupId });
+    return tabs.some((t) => t.audible && !(t.mutedInfo && t.mutedInfo.muted));
+  } catch {
+    return false;
+  }
+}
+
 async function applyGroupMetadata(groupId, identity) {
+  let title = identity.name;
+  try {
+    const settings = await loadSettings();
+    if (settings.audibleIndicator) {
+      const audible = await isGroupAudible(groupId);
+      if (audible) title += AUDIBLE_INDICATOR;
+    }
+  } catch {
+    // Best effort - fall back to plain name.
+  }
+
   try {
     await browser.tabGroups.update(groupId, {
-      title: identity.name,
+      title,
       color: mapContainerColor(identity.color),
     });
   } catch (e) {
@@ -320,6 +352,86 @@ function handleTabActivated(tabId, windowId) {
   return withLock("tabs.onActivated", () => handleTabActivatedImpl(tabId, windowId));
 }
 
+// ---------------------------------------------------------------------------
+// Audible indicator refresh
+// ---------------------------------------------------------------------------
+//
+// When a tab in a group starts/stops playing audio, refresh that group's
+// title so the " ♪" suffix appears or disappears accordingly. Debounced
+// because audio state can flap rapidly during ad transitions, etc.
+
+const audibleRefreshTimers = new Map();
+
+function scheduleAudibleRefresh(groupId) {
+  if (groupId == null || groupId === TAB_GROUP_ID_NONE) return;
+  if (audibleRefreshTimers.has(groupId)) {
+    clearTimeout(audibleRefreshTimers.get(groupId));
+  }
+  const timer = setTimeout(() => {
+    audibleRefreshTimers.delete(groupId);
+    withLock(`audible-refresh(${groupId})`, () => refreshGroupAudibleStateImpl(groupId));
+  }, AUDIBLE_REFRESH_DEBOUNCE_MS);
+  audibleRefreshTimers.set(groupId, timer);
+}
+
+function findCookieStoreIdForGroup(groupId, persistedMap) {
+  for (const [key, gid] of Object.entries(persistedMap)) {
+    if (gid === groupId) {
+      const parts = key.split("::");
+      return parts[1] || null;
+    }
+  }
+  return null;
+}
+
+async function refreshGroupAudibleStateImpl(groupId) {
+  const persistedMap = await loadGroupMap();
+  const cookieStoreId = findCookieStoreIdForGroup(groupId, persistedMap);
+  if (!cookieStoreId) return;
+
+  const identity = await getContainerIdentity(cookieStoreId);
+  if (!identity) return;
+
+  await applyGroupMetadata(groupId, identity);
+}
+
+// ---------------------------------------------------------------------------
+// Toggle mute on the audible tab
+// ---------------------------------------------------------------------------
+//
+// Why mute and not pause/play: HTMLMediaElement.play() called from an
+// extension context is rejected by Firefox's autoplay policy because the
+// user-gesture chain is not transferred to the target tab. Mute/unmute
+// goes through the privileged `tabs` API and always succeeds, which keeps
+// the addon's permissions surface minimal (no `scripting`, no host
+// permissions).
+
+async function pickMuteTarget() {
+  const audibleTabs = await browser.tabs.query({ audible: true });
+  if (audibleTabs.length > 0) {
+    try {
+      const focused = await browser.windows.getLastFocused();
+      return audibleTabs.find((t) => t.windowId === focused.id) || audibleTabs[0];
+    } catch {
+      return audibleTabs[0];
+    }
+  }
+  // No audible tab - fall back to the active tab in the focused window.
+  const [active] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
+  return active || null;
+}
+
+async function toggleMuteOnAudibleTab() {
+  const target = await pickMuteTarget();
+  if (!target) return;
+  const currentlyMuted = Boolean(target.mutedInfo && target.mutedInfo.muted);
+  try {
+    await browser.tabs.update(target.id, { muted: !currentlyMuted });
+  } catch (e) {
+    log.warn("tabs.update muted failed:", e);
+  }
+}
+
 // New tabs may not have their final cookieStoreId immediately, so debounce.
 const pendingTabs = new Map();
 function scheduleTabHandling(tabId) {
@@ -345,9 +457,9 @@ browser.runtime.onStartup.addListener(() => {
   regroupAllWindows().catch((e) => log.error("onStartup regroup failed:", e));
 });
 
-browser.action.onClicked.addListener(() => {
-  regroupAllWindows().catch((e) => log.error("action regroup failed:", e));
-});
+// The toolbar action now opens popup.html, so onClicked never fires. The
+// popup invokes regroupAllWindows via the runtime.onMessage channel below
+// when the user clicks "Re-group all tabs by container".
 
 browser.runtime.onMessage.addListener((message) => {
   if (message && message.type === "regroup-all") {
@@ -373,6 +485,23 @@ browser.tabs.onUpdated.addListener(
   },
   { properties: ["pinned"] }
 );
+
+// Refresh the " ♪" suffix when a tab's audible / muted state flips.
+browser.tabs.onUpdated.addListener(
+  (_tabId, _changeInfo, tab) => {
+    if (tab && typeof tab.groupId === "number" && tab.groupId !== TAB_GROUP_ID_NONE) {
+      scheduleAudibleRefresh(tab.groupId);
+    }
+  },
+  { properties: ["audible", "mutedInfo"] }
+);
+
+// Toggle mute on the audible tab via the configured keyboard shortcut.
+browser.commands.onCommand.addListener((command) => {
+  if (command === "toggle-mute") {
+    toggleMuteOnAudibleTab().catch((e) => log.error("toggle-mute command failed:", e));
+  }
+});
 
 // When a tab is dragged into another window, re-place it in that window's
 // container group.
