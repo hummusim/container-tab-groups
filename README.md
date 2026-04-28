@@ -33,12 +33,12 @@ This extension declares the smallest set of permissions it needs and
 requests **no host access** to any website. There is no `<all_urls>`
 prompt, no content-script injection, and no network activity.
 
-| Permission | Why it's needed |
-| --- | --- |
-| `tabs` | Read tab metadata (URL, container, audible state) and update simple properties (muted state). Never reads page contents. |
-| `tabGroups` | Create, rename, recolor, and collapse the native Firefox tab groups that mirror your containers. |
-| `contextualIdentities` | Read the name and color of each Multi-Account Container so the matching tab group can use them. |
-| `storage` | Persist the container -> group mapping and your settings (auto-collapse toggle, audible indicator toggle) in `storage.local`, on your machine only. |
+| Permission             | Why it's needed                                                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tabs`                 | Read tab metadata (URL, container, audible state) and update simple properties (muted state). Never reads page contents.                            |
+| `tabGroups`            | Create, rename, recolor, and collapse the native Firefox tab groups that mirror your containers.                                                    |
+| `contextualIdentities` | Read the name and color of each Multi-Account Container so the matching tab group can use them.                                                     |
+| `storage`              | Persist the container -> group mapping and your settings (auto-collapse toggle, audible indicator toggle) in `storage.local`, on your machine only. |
 
 What the extension does **not** do:
 

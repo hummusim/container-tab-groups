@@ -168,9 +168,7 @@ async function resolveGroupId(windowId, identity, persistedMap) {
 
 function stripAudibleIndicator(title) {
   if (!title) return title;
-  return title.endsWith(AUDIBLE_INDICATOR)
-    ? title.slice(0, -AUDIBLE_INDICATOR.length)
-    : title;
+  return title.endsWith(AUDIBLE_INDICATOR) ? title.slice(0, -AUDIBLE_INDICATOR.length) : title;
 }
 
 async function isGroupAudible(groupId) {
