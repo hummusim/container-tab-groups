@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Containers as Tab Groups",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Group your tabs automatically by their Multi-Account Container, treating each container like a profile.",
   "homepage_url": "https://github.com/hummusim/container-tab-groups",
   "permissions": ["tabs", "tabGroups", "contextualIdentities", "storage"],
