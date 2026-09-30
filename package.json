@@ -24,7 +24,8 @@
     "start": "web-ext run",
     "sign": "dotenv -- web-ext sign --channel=unlisted",
     "sign:listed": "dotenv -- web-ext sign --channel=listed",
-    "verify": "npm run format:check && npm run lint"
+    "test": "node --test background.test.mjs",
+    "verify": "npm test && npm run format:check && npm run lint"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

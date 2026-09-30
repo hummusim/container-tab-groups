@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Validate container/group associations against the actual tabs instead of trusting
+  cached group IDs or group titles. Stale mappings and identical container names
+  no longer merge different containers; regrouping also separates mixed groups.
+
 ## [1.1.0] - 2026-04-27
 
 ### Added

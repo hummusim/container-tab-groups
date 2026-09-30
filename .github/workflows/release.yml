@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "AMO channel"
+        required: true
+        default: "listed"
+        type: choice
+        options:
+          - listed
+          - unlisted
+
+permissions:
+  contents: write # needed to create the GitHub Release
+
+jobs:
+  release:
+    name: Build, sign, publish
+    runs-on: ubuntu-latest
+    # Scope AMO credentials to the "production" environment so they're only
+    # available to this job (and any future deploy jobs you add). The
+    # environment also lets you require manual approval and limit which
+    # branches/tags can deploy. Configure at:
+    # Settings -> Environments -> production
+    environment:
+      name: production
+      url: https://addons.mozilla.org/addon/containers-as-tab-groups/
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify (format + lint)
+        run: npm run verify
+
+      - name: Sanity-check version match
+        # Make sure git tag matches the version in manifest.json before
+        # we waste an AMO submission slot.
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF##refs/tags/v}"
+          manifest_version="$(node -p "require('./manifest.json').version")"
+          if [ "$tag" != "$manifest_version" ]; then
+            echo "::error::Tag v$tag does not match manifest.json version $manifest_version"
+            exit 1
+          fi
+          echo "Tag and manifest version both at $tag"
+
+      - name: Build
+        run: npm run build
+
+      - name: Sign with AMO
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_API_SECRET }}
+          CHANNEL: ${{ github.event.inputs.channel || 'listed' }}
+        run: npx web-ext sign --channel="$CHANNEL"
+
+      - name: Locate signed XPI
+        id: xpi
+        run: |
+          set -euo pipefail
+          xpi="$(find web-ext-artifacts -name '*.xpi' -type f | head -n1)"
+          if [ -z "$xpi" ]; then
+            echo "::error::No signed .xpi was produced"
+            exit 1
+          fi
+          echo "path=$xpi" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$xpi")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload XPI as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-xpi
+          path: ${{ steps.xpi.outputs.path }}
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.xpi.outputs.path }}
+          generate_release_notes: true

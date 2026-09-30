@@ -76,12 +76,13 @@ For permanent installation you'll need to package and sign the extension via
 ```bash
 npm install
 npm run start         # launch a Firefox dev profile with the extension loaded
+npm test              # grouping regression tests (Node.js built-in test runner)
 npm run lint          # web-ext lint + eslint
 npm run format        # prettier --write .
 npm run build         # produces a .zip in web-ext-artifacts/
 ```
 
-CI runs `format:check`, `lint`, and `build` on every push and pull request.
+CI runs `test`, `format:check`, `lint`, and `build` on every push and pull request.
 
 ### Project layout
 

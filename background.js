@@ -124,51 +124,42 @@ function mapContainerColor(containerColor) {
 
 /**
  * Resolves the tab-group ID for a given (window, container) pair.
- * Returns null if no group exists yet (caller should create one).
- *
- * Strategy (in order):
- *   1. Cached groupId in storage.local (validated via tabGroups.get).
- *   2. Existing group in the same window whose title matches the container.
+ * Group IDs can change across browser sessions, and titles are not unique.
+ * Reuse a group only when all its tabs belong to this container, preferring
+ * the cached group when it still passes that check.
  */
 async function resolveGroupId(windowId, identity, persistedMap) {
   const key = mapKey(windowId, identity.cookieStoreId);
+  const tabs = await browser.tabs.query({ windowId });
+  const belongsToContainer = (groupId) => {
+    const members = tabs.filter((tab) => tab.groupId === groupId);
+    return (
+      members.length > 0 && members.every((tab) => tab.cookieStoreId === identity.cookieStoreId)
+    );
+  };
 
-  // 1. Cached.
   const cached = persistedMap[key];
   if (cached != null) {
     try {
       const group = await browser.tabGroups.get(cached);
-      if (group && group.windowId === windowId) {
+      if (group.windowId === windowId && belongsToContainer(cached)) {
         return cached;
       }
     } catch {
-      // Stale - fall through and clean up later.
-      delete persistedMap[key];
+      // The cached group no longer exists.
     }
+    delete persistedMap[key];
   }
 
-  // 2. By matching title in the same window. We query without a title filter
-  //    and match in JS, since the `title` query parameter isn't honored
-  //    consistently across Firefox versions. Strip the audible indicator
-  //    suffix before comparing so we still recognize a group that's currently
-  //    showing "Personal ♪".
-  try {
-    const groups = await browser.tabGroups.query({ windowId });
-    const match = groups.find((g) => stripAudibleIndicator(g.title) === identity.name);
-    if (match) {
-      persistedMap[key] = match.id;
-      return match.id;
-    }
-  } catch (e) {
-    log.warn("tabGroups.query failed:", e);
+  // Recover associations from the tabs themselves, even after a rename or
+  // cache reset. A matching title alone must never merge different containers.
+  const groups = await browser.tabGroups.query({ windowId });
+  const match = groups.find((group) => belongsToContainer(group.id));
+  if (match) {
+    persistedMap[key] = match.id;
+    return match.id;
   }
-
   return null;
-}
-
-function stripAudibleIndicator(title) {
-  if (!title) return title;
-  return title.endsWith(AUDIBLE_INDICATOR) ? title.slice(0, -AUDIBLE_INDICATOR.length) : title;
 }
 
 async function isGroupAudible(groupId) {

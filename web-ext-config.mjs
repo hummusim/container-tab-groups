@@ -6,6 +6,7 @@ export default {
   // Files NOT shipped inside the .zip artifact.
   ignoreFiles: [
     "package.json",
+    "*.test.mjs",
     "package-lock.json",
     "web-ext-config.mjs",
     "eslint.config.js",
